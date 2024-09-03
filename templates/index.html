@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos de Limpeza</title>
+    <link rel="stylesheet" href="/Users/Remakker/sistema_produto/static/styles.css">
+</head>
+<body>
+    <h1>Produtos de Limpeza</h1>
+    <form id="product-form">
+        {% for product, price in products.items() %}
+            <div>
+                <label for="{{ product }}">{{ product.replace('_', ' ').title() }} (R$ {{ price }}): </label>
+                <input type="number" id="{{ product }}" name="{{ product }}" min="0" value="0">
+            </div>
+        {% endfor %}
+        <button type="button" onclick="calculateTotal()">Calcular Total</button>
+    </form>
+    <h2>Relatório</h2>
+    <div id="report"></div>
+
+    <script>
+        function calculateTotal() {
+            const form = document.getElementById('product-form');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const report = document.getElementById('report');
+                report.innerHTML = `<p>Total: R$ ${data.total.toFixed(2)}</p>`;
+                for (const [product, quantity] of Object.entries(data.quantities)) {
+                    report.innerHTML += `<p>${product.replace('_', ' ').title()}: ${quantity}</p>`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
